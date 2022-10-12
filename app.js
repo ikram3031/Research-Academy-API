@@ -8,6 +8,7 @@ const app = express()
 
 // Rest Packages
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser')
 
 // database
 const connectDB = require('./db/connect');
@@ -24,8 +25,12 @@ app.use(morgan('tiny'))
 //  Access Json data from req.body
 app.use(express.json())
 
+// Cookie Parser
+app.use(cookieParser(process.env.JWT_SECRET));
+
 app.get('/', (req,res) => {
-    res.send('Research API')
+  console.log(req.signedCookies)
+  res.send('Research API')
 })
 
 app.use('/api/v1/auth', authRouter);
