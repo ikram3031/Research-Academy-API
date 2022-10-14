@@ -8,13 +8,15 @@ const app = express()
 
 // Rest Packages
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 // database
 const connectDB = require('./db/connect');
 
 // routers
-const authRouter = require('./routes/authRoutes')
+const authRouter = require('./routes/authRoutes');
+const userRouter = require('./routes/userRoutes');
 
 // Middleware
 const notFoundMiddleware = require('./middleware/not-found');
@@ -27,6 +29,8 @@ app.use(express.json())
 
 // Cookie Parser
 app.use(cookieParser(process.env.JWT_SECRET));
+app.use(express.static('./public'));
+app.use(cors())
 
 app.get('/', (req,res) => {
   console.log(req.signedCookies)
@@ -34,6 +38,7 @@ app.get('/', (req,res) => {
 })
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/user', userRouter);
 
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)

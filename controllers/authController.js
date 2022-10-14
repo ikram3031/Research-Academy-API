@@ -6,7 +6,7 @@ const { attachCookiesToResponse } = require('../utils')
 
 
 const register = async (req, res) => {
-    const { email, userName, password } = req.body;
+    const { email, userName } = req.body;
 
     // Check if email already exists
     const emailAlreadyExists = await User.findOne({ email })
@@ -37,13 +37,49 @@ const register = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ user: tokenUser });
 }
 
+
 const login = async (req, res) => {
-    res.send('login');
+    const { userName, password } = req.body;
+
+    if (!userName || !password) {
+        throw new CustomError.BadRequestError('Please provide valid userName and password');
+    }
+
+    const user = await User.findOne({ userName });
+
+    if (!user) {
+        throw new CustomError.UnauthenticatedError('Invalid Credentials');
+    }
+
+    const isPasswordCorrect = await user.comparePassword(password);
+
+    if (!isPasswordCorrect) {
+        throw new CustomError.UnauthenticatedError('Invalid Credentials')
+    }
+
+    const tokenUser = {
+        userName: user.userName,
+        userId: user._id,
+        role: user.role
+    }
+
+    attachCookiesToResponse({ res, user: tokenUser })
+
+    res.status(StatusCodes.CREATED).json({ user: tokenUser });
 }
 
+
 const logout = async (req, res) => {
-    res.send('logout');
+
+    res.cookie('token', 'logout', {
+        httpOnly: true,
+        expires: new Date(Date.now()),
+    });
+
+    res.status(StatusCodes.OK).json({ msg: `user logged out` })
+
 }
+
 
 module.exports = {
     register, login, logout
